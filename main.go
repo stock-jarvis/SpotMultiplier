@@ -18,9 +18,12 @@ func main() {
 	pathList := fetchFiles(inputDir, instList)
 	for iname, path := range pathList {
 		f, _ := os.Open(path)
-		fo, _ := os.Create(fmt.Sprintf("%s.csv", iname))
+		fo, _ := os.Create(fmt.Sprintf("%s/adj_%s_1m.csv", inputDir, iname))
 		csvReader := csv.NewReader(f)
 		csvWriter := csv.NewWriter(fo)
+		header, _ := csvReader.Read()
+		csvWriter.Write(header)
+		csvWriter.Flush()
 		recs, _ := csvReader.ReadAll()
 		irules := rules[iname]
 		for _, rec := range recs {
@@ -38,6 +41,7 @@ func main() {
 				fmt.Sprint(c * mx),
 				rec[5],
 			})
+			csvWriter.Flush()
 		}
 		f.Close()
 		fo.Close()
@@ -78,7 +82,7 @@ func in[T comparable](arr []T, elem T) bool {
 
 func keys[T any](in map[string]T) []string {
 	var keys []string
-	for k, _ := range in {
+	for k := range in {
 		keys = append(keys, k)
 	}
 	return keys
@@ -114,6 +118,7 @@ func parseRules() map[string][]Rule {
 				To:         to.Unix(),
 				multiplier: multi,
 			})
+			rules[record[0]] = instrule
 		} else {
 			rules[record[0]] = []Rule{
 				{
